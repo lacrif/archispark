@@ -1,35 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-import {
-  fetchModel,
-  fetchElementTypes,
-  fetchElements,
-  type ModelInfo,
-  type ElementOut,
-} from "@/lib/api";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Badge } from "@workspace/ui/components/badge";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@workspace/ui/components/select";
-import { DataTable } from "@/components/data-table";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { fetchModel, fetchElements, type ModelInfo, type ElementOut } from "@/lib/api";
 
 const LAYER_COLORS: Record<string, string> = {
-  Business: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
-  Application: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  Technology: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-  Physical: "bg-green-200 text-green-900 dark:bg-green-800/40 dark:text-green-200",
-  Motivation: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
-  Strategy: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-  Implementation: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
-  Composite: "bg-gray-100 text-gray-800 dark:bg-gray-800/40 dark:text-gray-300",
+  Business: "#d97706",
+  Application: "#2563eb",
+  Technology: "#16a34a",
+  Motivation: "#7c3aed",
+  Strategy: "#dc2626",
+  Physical: "#059669",
+  Implementation: "#ea580c",
 };
 
 function getLayer(type: string): string {
@@ -52,155 +34,115 @@ function getLayer(type: string): string {
   return "Composite";
 }
 
-const columns: ColumnDef<ElementOut>[] = [
-  {
-    accessorKey: "name",
-    header: "Nom",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.getValue("name") || "—"}</span>
-    ),
-  },
-  {
-    accessorKey: "type",
-    header: "Type",
-    cell: ({ row }) => (
-      <Badge variant="secondary" className="font-mono text-xs">
-        {row.getValue("type")}
-      </Badge>
-    ),
-  },
-  {
-    id: "layer",
-    header: "Layer",
-    accessorFn: (row) => getLayer(row.type),
-    cell: ({ getValue }) => {
-      const layer = getValue<string>();
-      return (
-        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${LAYER_COLORS[layer] ?? ""}`}>
-          {layer}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "documentation",
-    header: "Documentation",
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="max-w-xs truncate block text-muted-foreground">
-        {row.getValue("documentation") || "—"}
-      </span>
-    ),
-  },
+const SECTIONS = [
+  { href: "/elements", label: "Éléments", desc: "Parcourir tous les éléments ArchiMate du modèle" },
+  { href: "/relationships", label: "Relations", desc: "Explorer les relations entre éléments" },
+  { href: "/views", label: "Vues", desc: "Visualiser les diagrammes du modèle" },
 ];
 
-export default function Page() {
+export default function OverviewPage() {
   const [model, setModel] = useState<ModelInfo | null>(null);
-  const [types, setTypes] = useState<string[]>([]);
   const [elements, setElements] = useState<ElementOut[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const initialLoad = useRef(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  useEffect(() => {
-    Promise.all([fetchModel(), fetchElementTypes(), fetchElements()])
-      .then(([m, t, e]) => {
+    Promise.all([fetchModel(), fetchElements()])
+      .then(([m, e]) => {
         setModel(m);
-        setTypes(t);
         setElements(e);
-        initialLoad.current = false;
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (initialLoad.current) return;
-    setLoading(true);
-    fetchElements(typeFilter, debouncedSearch || null)
-      .then(setElements)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [typeFilter, debouncedSearch]);
+  const layerCounts = elements.reduce<Record<string, number>>((acc, el) => {
+    const layer = getLayer(el.type);
+    acc[layer] = (acc[layer] || 0) + 1;
+    return acc;
+  }, {});
 
-  const grouped = useMemo(() => {
-    const groups: Record<string, string[]> = {};
-    for (const t of types) {
-      const layer = getLayer(t);
-      (groups[layer] ??= []).push(t);
-    }
-    return groups;
-  }, [types]);
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-muted-foreground p-8">
+        <div className="size-4 rounded-full border-2 border-border border-t-primary animate-spin shrink-0" />
+        Chargement…
+      </div>
+    );
+  }
 
   if (error) {
     return (
-      <div className="flex min-h-svh items-center justify-center p-6">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="text-destructive">Erreur</CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-xs">
-              Assurez-vous que l&apos;API ArchiMate tourne sur le port 8000.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="p-8">
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">
+          Erreur : {error}
+        </div>
+        <p className="text-muted-foreground text-xs mt-2">
+          Assurez-vous que l&apos;API ArchiMate tourne sur le port 8000.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-svh p-6 space-y-6">
+    <div className="p-7 max-w-5xl">
       {model && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{model.name}</CardTitle>
-            <CardDescription>
-              {model.element_count} elements &middot; {model.relationship_count} relations &middot;{" "}
-              {model.view_count} vues
-              {model.version && <> &middot; v{model.version}</>}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="mb-6">
+          <h1 className="text-lg font-semibold">{model.name}</h1>
+          <p className="text-muted-foreground text-[13px] mt-0.5">
+            {model.documentation || "Modèle ArchiMate"}
+            {model.version && <> · v{model.version}</>}
+          </p>
+        </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Input
-          placeholder="Rechercher par nom..."
-          className="max-w-xs"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Select
-          value={typeFilter ?? ""}
-          onValueChange={(val) => setTypeFilter(val || null)}
-        >
-          <SelectTrigger className="min-w-[180px]">
-            <SelectValue placeholder="Tous les types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">Tous les types</SelectItem>
-            {Object.values(grouped).map((layerTypes) =>
-              layerTypes.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t}
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
+      {/* Stats cards */}
+      <div className="text-[11px] font-bold tracking-[0.6px] uppercase text-muted-foreground mb-3">
+        Aperçu du modèle
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 mb-7">
+        <StatCard label="Total éléments" value={model?.element_count ?? 0} />
+        {Object.entries(layerCounts)
+          .sort(([, a], [, b]) => b - a)
+          .map(([layer, count]) => (
+            <StatCard
+              key={layer}
+              label={layer}
+              value={count}
+              color={LAYER_COLORS[layer]}
+            />
+          ))}
+        <StatCard label="Relations" value={model?.relationship_count ?? 0} />
+        <StatCard label="Vues" value={model?.view_count ?? 0} />
       </div>
 
-      <DataTable columns={columns} data={elements} loading={loading} />
+      {/* Navigation cards */}
+      <div className="text-[11px] font-bold tracking-[0.6px] uppercase text-muted-foreground mb-3 mt-2">
+        Explorer
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2.5">
+        {SECTIONS.map((s) => (
+          <Link
+            key={s.href}
+            href={s.href}
+            className="bg-card border border-border rounded-lg px-4 py-3.5 no-underline transition-colors hover:border-primary"
+          >
+            <div className="text-[13px] font-semibold mb-0.5 text-foreground">{s.label}</div>
+            <div className="text-[12px] text-muted-foreground">{s.desc}</div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, color }: { label: string; value: number; color?: string }) {
+  return (
+    <div className="bg-card border border-border rounded-lg p-4">
+      <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-1.5">{label}</div>
+      <div className="text-2xl font-bold" style={color ? { color } : undefined}>
+        {value}
+      </div>
     </div>
   );
 }

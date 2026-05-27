@@ -58,6 +58,7 @@ import {
   SaveResult,
   StyleOut,
   ViewCreateIn,
+  ViewUpdateIn,
   ViewDetailOut,
   ViewOut,
 } from "./schemas.js";
@@ -286,6 +287,21 @@ export function getViewById(ds: DataSource, view_id: string): ViewDetailOut {
 // ---------------------------------------------------------------------------
 // Mutation business logic – Views & Nodes
 // ---------------------------------------------------------------------------
+
+export function updateView(ds: DataSource, view_id: string, input: ViewUpdateIn): ViewDetailOut {
+  const view = ds.model.views.find((v) => v.uuid === view_id);
+  if (!view) throw new Error(`Vue '${view_id}' introuvable.`);
+  if (input.name !== undefined) view.name = input.name;
+  if (input.documentation !== undefined) view.desc = input.documentation ?? null;
+  if (input.viewpoint !== undefined) view.primary_viewpoint = input.viewpoint ?? null;
+  return viewOut(view, true);
+}
+
+export function deleteView(ds: DataSource, view_id: string): void {
+  const idx = ds.model.views.findIndex((v) => v.uuid === view_id);
+  if (idx === -1) throw new Error(`Vue '${view_id}' introuvable.`);
+  ds.model.views.splice(idx, 1);
+}
 
 export function createView(ds: DataSource, input: ViewCreateIn): ViewDetailOut {
   const view: ArchiView = {
@@ -665,6 +681,24 @@ app.post("/views", (req: Request, res: Response) => {
     return;
   }
   res.status(201).json(createView(dataSource, body));
+});
+
+app.put("/views/:view_id", (req: Request, res: Response) => {
+  const body = req.body as ViewUpdateIn;
+  try {
+    res.json(updateView(dataSource, req.params["view_id"] as string, body));
+  } catch (err) {
+    res.status(404).json({ detail: (err as Error).message });
+  }
+});
+
+app.delete("/views/:view_id", (req: Request, res: Response) => {
+  try {
+    deleteView(dataSource, req.params["view_id"] as string);
+    res.status(204).send();
+  } catch (err) {
+    res.status(404).json({ detail: (err as Error).message });
+  }
 });
 
 app.post("/views/:view_id/nodes", (req: Request, res: Response) => {

@@ -213,6 +213,12 @@ export interface ViewCreateIn {
   documentation?: string | null;
 }
 
+export interface ViewUpdateIn {
+  name?: string;
+  viewpoint?: string | null;
+  documentation?: string | null;
+}
+
 export interface NodeCreateIn {
   element_id: string;
   x?: number | null;
