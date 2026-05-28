@@ -32,8 +32,7 @@ jobs:
           NODE_ENV: production
 
       - name: Run tests with coverage
-        working-directory: apps/api
-        run: npm test -- --coverage --reporter=verbose
+        run: pnpm turbo run test:coverage
         env:
           NODE_ENV: test
 
@@ -72,3 +71,25 @@ jobs:
 
       - name: Typecheck
         run: pnpm --filter mcp-archimate exec tsc --noEmit
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm turbo run lint
