@@ -7,8 +7,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Persist / override the ArchiMate XML model
-      - ./apps/api/data:/repo/apps/api/data
+      - ./data:/repo/data
     environment:
       PORT: "3000"
       HOST: "0.0.0.0"
@@ -17,6 +16,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp-server
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      MCP_PORT: "3001"
+      HOST: "0.0.0.0"
+    depends_on:
+      api:
+        condition: service_healthy
 
   web:
     build:

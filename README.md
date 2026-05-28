@@ -24,7 +24,7 @@ On first run the API:
 
 ## Persistence
 
-All data lives in `apps/api/data/archispark.db` (SQLite, WAL mode).  
+All data lives in `data/archispark.db` at the repo root (SQLite, WAL mode), shared between the API and MCP server.  
 Schema follows ArchiMate 3 Open Exchange XSDs (`apps/api/models/xsd/`).
 
 To generate a migration after a schema change:

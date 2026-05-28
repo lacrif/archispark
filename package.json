@@ -8,8 +8,8 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
-    "test": "turbo run test --filter=mcp-archimate --filter=mcp-server --filter=web",
-    "test:coverage": "turbo run test:coverage --filter=mcp-archimate --filter=mcp-server --filter=web"
+    "test": "turbo run test --filter=api --filter=mcp-server --filter=web",
+    "test:coverage": "turbo run test:coverage --filter=api --filter=mcp-server --filter=web"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

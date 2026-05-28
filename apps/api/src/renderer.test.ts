@@ -110,6 +110,10 @@ function makeView(overrides: Partial<ArchiView> = {}): ArchiView {
 let knownView: ViewOut;
 
 beforeAll(async () => {
+  const existing = (await request(app).get("/views")).body as ViewOut[];
+  if (existing.length === 0) {
+    await request(app).post("/views").send({ name: "Test View" });
+  }
   const viewRes = await request(app).get("/views");
   const views = viewRes.body as ViewOut[];
   knownView = views.find((v) => v.identifier) ?? views[0]!;

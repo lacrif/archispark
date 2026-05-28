@@ -158,6 +158,18 @@ let knownView: ViewOut;
 beforeAll(async () => {
   ds = dataSource;
 
+  // Seed minimal fixtures when running against an empty DB
+  const seedEls = (await request(app).get(`/elements`)).body as ElementOut[];
+  if (seedEls.length === 0) {
+    await request(app).post(`/elements`).send({ name: "App A", type: "ApplicationComponent" });
+    await request(app).post(`/elements`).send({ name: "App B", type: "ApplicationComponent" });
+    const created = (await request(app).get(`/elements`)).body as ElementOut[];
+    if (created.length >= 2) {
+      await request(app).post(`/relationships`).send({ type: "Association", source: created[0]!.identifier, target: created[1]!.identifier });
+    }
+    await request(app).post(`/views`).send({ name: "Test View" });
+  }
+
   const elemRes = await request(app).get(`/elements`);
   elementsData = elemRes.body as ElementOut[];
   knownElement = elementsData.find((e) => e.identifier && e.type) ?? elementsData[0]!;
