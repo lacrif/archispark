@@ -3,8 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
 import { eq } from "drizzle-orm";
-import { db } from "./db/connection.js";
-import { users as usersTable } from "./db/schema.js";
+import { db, users as usersTable } from "@workspace/db";
 
 // ---------------------------------------------------------------------------
 // Types

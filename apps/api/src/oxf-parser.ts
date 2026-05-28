@@ -18,7 +18,7 @@ import type {
   ArchiModel,
   ArchiPropertyDefinition,
   BendPoint,
-} from "./model.js";
+} from "@workspace/db";
 
 type XmlNode = Record<string, unknown>;
 

@@ -234,7 +234,6 @@ export default function CapabilitiesPage() {
             const totalL1Apps =
               l1.apps.length +
               l1.l2.reduce((sum, l2) => sum + l2.apps.length, 0);
-            const hasApps = totalL1Apps > 0;
             const isGap = totalL1Apps === 0 && l1.l2.length === 0;
 
             return (

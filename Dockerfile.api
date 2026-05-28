@@ -9,6 +9,7 @@ WORKDIR /repo
 # Install dependencies (copy manifests first for layer caching)
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/api/package.json apps/api/
+COPY packages/db/package.json packages/db/
 COPY packages/typescript-config/package.json packages/typescript-config/
 COPY packages/eslint-config/package.json packages/eslint-config/
 
@@ -21,9 +22,9 @@ COPY packages/ packages/
 
 WORKDIR /repo/apps/api
 
-EXPOSE 8000
+EXPOSE 3000
 
 # Data directory — mount a volume to persist/override the model
-VOLUME /repo/apps/api/data
+VOLUME /repo/data
 
 CMD ["node_modules/.bin/tsx", "src/main.ts"]

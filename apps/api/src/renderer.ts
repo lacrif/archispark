@@ -8,7 +8,7 @@
 import { readFileSync, existsSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import type { ArchiView, ArchiNode, ArchiModel } from "./model.js";
+import type { ArchiView, ArchiNode, ArchiModel } from "@workspace/db";
 
 const _srcDir = dirname(fileURLToPath(import.meta.url));
 const ICONS_DIR = join(_srcDir, "..", "public", "images", "archimate");

@@ -5,18 +5,31 @@ services:
       dockerfile: Dockerfile.api
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "3000:3000"
     volumes:
-      # Persist / override the ArchiMate XML model
-      - ./apps/api/data:/repo/apps/api/data
+      - ./data:/repo/data
     environment:
-      PORT: "8000"
+      PORT: "3000"
       HOST: "0.0.0.0"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8000/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp-server
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      MCP_PORT: "3001"
+      HOST: "0.0.0.0"
+    depends_on:
+      api:
+        condition: service_healthy
 
   web:
     build:
@@ -24,10 +37,10 @@ services:
       dockerfile: Dockerfile.web
       args:
         # Must match the Docker network service name
-        ARCHIMATE_API_URL: http://api:8000
+        ARCHIMATE_API_URL: http://api:3000
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "8000:8000"
     environment:
       NODE_ENV: production
     depends_on:

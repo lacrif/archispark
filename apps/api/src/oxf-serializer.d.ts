@@ -6,7 +6,7 @@
  * Preserves <metadata>, <propertyDefinitions>, <organizations>, <viewpoints>
  * subtrees from `_raw` when present (lossless round-trip for those sections).
  */
-import type { ArchiModel } from "./model.js";
+import type { ArchiModel } from "@workspace/db";
 export declare function serializeToOpenExchange(model: ArchiModel): string;
 export declare function saveModelToFile(model: ArchiModel, filePath: string): void;
 //# sourceMappingURL=oxf-serializer.d.ts.map

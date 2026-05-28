@@ -1,11 +1,11 @@
 import { defineConfig } from "drizzle-kit";
-import { join } from "path";
+import { fileURLToPath } from "url";
 
 export default defineConfig({
-  schema: "./src/db/schema.ts",
+  schema: "./src/schema.ts",
   out: "./drizzle",
   dialect: "sqlite",
   dbCredentials: {
-    url: join(process.cwd(), "data", "archispark.db"),
+    url: fileURLToPath(new URL("../../data/archispark.db", import.meta.url)),
   },
 });

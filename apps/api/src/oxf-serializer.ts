@@ -16,7 +16,7 @@ import type {
   ArchiColor,
   ArchiConnection,
   ArchiNode,
-} from "./model.js";
+} from "@workspace/db";
 
 type XmlNode = Record<string, unknown>;
 

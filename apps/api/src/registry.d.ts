@@ -2,7 +2,7 @@
  * Single ArchiMate model source loader.
  * Reads config.json at startup and parses the configured Open Exchange File (.xml).
  */
-import type { ArchiModel } from "./model.js";
+import type { ArchiModel } from "@workspace/db";
 export interface DataSource {
     readonly path: string;
     readonly model: ArchiModel;

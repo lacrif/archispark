@@ -5,6 +5,6 @@
  *
  * XSDs: archimate3_Model.xsd, archimate3_View.xsd, archimate3_Diagram.xsd.
  */
-import type { ArchiModel } from "./model.js";
+import type { ArchiModel } from "@workspace/db";
 export declare function parseOpenExchange(xmlContent: string): ArchiModel;
 //# sourceMappingURL=oxf-parser.d.ts.map

@@ -46,10 +46,6 @@ interface SubCap {
   otherElements: StratElement[];
 }
 
-function isStrategyType(type: string): boolean {
-  return ["Resource", "Capability", "CourseOfAction", "ValueStream"].includes(type);
-}
-
 function buildStrategyView(
   elements: ElementOut[],
   relationships: RelationshipOut[]

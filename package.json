@@ -7,21 +7,20 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "test": "turbo run test --filter=api --filter=mcp-server --filter=web --filter=@workspace/db",
+    "test:coverage": "turbo run test:coverage --filter=api --filter=mcp-server --filter=web --filter=@workspace/db"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "turbo": "^2.8.17",
+    "turbo": "^2.9.15",
     "typescript": "5.9.3"
   },
   "packageManager": "pnpm@11.4.0",
   "engines": {
-    "node": ">=20"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["better-sqlite3", "bcryptjs", "sharp"]
+    "node": ">=22.13"
   }
 }

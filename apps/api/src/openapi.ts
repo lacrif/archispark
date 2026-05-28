@@ -3,7 +3,8 @@
  * Served as JSON at GET /openapi.json and as Swagger UI at GET /docs.
  */
 
-import { version } from "../package.json";
+import packageJson from "../package.json" with { type: "json" };
+const { version } = packageJson;
 import { ELEMENT_TYPES, RELATIONSHIP_TYPES } from "./schemas.js";
 
 const elementTypesEnum = [...ELEMENT_TYPES].sort();
@@ -261,7 +262,7 @@ export const openApiSpec = {
       "La source est configurée dans `config.json`.",
     contact: { name: "GitHub", url: "https://github.com/lacrif/mcp-archimate" },
   },
-  servers: [{ url: "http://localhost:8000", description: "Serveur local" }],
+  servers: [{ url: "http://localhost:3000", description: "Serveur local" }],
 
   tags: [
     { name: "Model",         description: "Informations et persistance du modèle" },

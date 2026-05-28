@@ -16,14 +16,11 @@
  *      then loads the first workspace into memory.
  */
 
-import { readFileSync, existsSync, mkdirSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { randomUUID } from "crypto";
 import { join } from "path";
 import { eq } from "drizzle-orm";
-import { db } from "./db/connection.js";
-import { runMigrations } from "./db/migrate.js";
-import { workspaces as wsTable } from "./db/schema.js";
-import { modelFromDb, modelToDb, seedWorkspace } from "./db/model-io.js";
+import { db, runMigrations, workspaces as wsTable, modelFromDb, modelToDb, seedWorkspace } from "@workspace/db";
 import { parseOpenExchange } from "./oxf-parser.js";
 import { initUsers } from "./auth.js";
 
@@ -86,12 +83,17 @@ function strIdToDbId(id: string): number {
 // ---------------------------------------------------------------------------
 
 function _init(): void {
-  mkdirSync(join(process.cwd(), "data"), { recursive: true });
   runMigrations();
   initUsers();
 
   const count = db.select({ id: wsTable.id }).from(wsTable).all().length;
-  if (count === 0) _seedFromLegacy();
+  if (count === 0) {
+    _seedFromLegacy();
+    const afterSeed = db.select({ id: wsTable.id }).from(wsTable).all().length;
+    if (afterSeed === 0) {
+      seedWorkspace("Default", { uuid: randomUUID(), name: "Default", desc: null, version: null, elements: [], relationships: [], propertyDefinitions: [], views: [] });
+    }
+  }
 
   const rows = db.select({ id: wsTable.id }).from(wsTable).all();
   if (rows.length === 0) throw new Error("No workspaces in DB after init");

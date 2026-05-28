@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, "../../"),
   transpilePackages: ["@workspace/ui"],
   async rewrites() {
-    const apiUrl = process.env.ARCHIMATE_API_URL ?? "http://localhost:8000";
+    const apiUrl = process.env.ARCHIMATE_API_URL ?? "http://localhost:3000";
     return [
       {
         source: "/api/:path*",

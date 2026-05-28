@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { LayoutDashboard, ArrowRightLeft, LayoutGrid, Tag, Download, Users } from "lucide-react";
-import { fetchModel, fetchElements, importModel, type ModelInfo, type ElementOut } from "@/lib/api";
+import { fetchModel, fetchElements, importModel, type ModelInfo } from "@/lib/api";
 import { useIsAdmin } from "@/hooks/use-current-user";
 
 interface LayerGroup {

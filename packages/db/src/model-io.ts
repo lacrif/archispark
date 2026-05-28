@@ -29,7 +29,7 @@ import type {
   ArchiPropertyDefinition,
   ArchiColor,
   BendPoint,
-} from "../model.js";
+} from "./model.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -274,6 +274,7 @@ export function modelToDb(workspaceId: number, model: ArchiModel): void {
       const res = db.insert(elements).values({
         workspaceId, uuid: e.uuid, type: e.type, name: e.name, description: e.desc ?? null,
       }).returning({ id: elements.id }).get();
+      // v8 ignore next
       if (!res) continue;
       for (const [defUuid, value] of Object.entries(e.props)) {
         db.insert(elementProperties).values({ elementId: res.id, propertyDefUuid: defUuid, value }).run();
@@ -291,6 +292,7 @@ export function modelToDb(workspaceId: number, model: ArchiModel): void {
         isDirected: r.is_directed ?? null,
         influenceModifier: r.influence_strength ?? null,
       }).returning({ id: relationships.id }).get();
+      // v8 ignore next
       if (!res) continue;
       for (const [defUuid, value] of Object.entries(r.props)) {
         db.insert(relationshipProperties).values({ relationshipId: res.id, propertyDefUuid: defUuid, value }).run();
@@ -303,6 +305,7 @@ export function modelToDb(workspaceId: number, model: ArchiModel): void {
         workspaceId, uuid: v.uuid, name: v.name,
         description: v.desc ?? null, viewpoint: v.primary_viewpoint ?? null,
       }).returning({ id: views.id }).get();
+      // v8 ignore next
       if (!vRes) continue;
       const viewId = vRes.id;
 
@@ -328,6 +331,7 @@ export function modelToDb(workspaceId: number, model: ArchiModel): void {
           fontSize: c.font_size ?? null,
           fontColorR: fontC2.r, fontColorG: fontC2.g, fontColorB: fontC2.b, fontColorA: fontC2.a,
         }).returning({ id: connections.id }).get();
+        // v8 ignore next
         if (!cRes) continue;
         if (c.bendpoints?.length) {
           for (let i = 0; i < c.bendpoints.length; i++) {
