@@ -16,7 +16,7 @@
     "@workspace/typescript-config": "workspace:*",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "turbo": "^2.8.17",
+    "turbo": "^2.9.15",
     "typescript": "5.9.3"
   },
   "packageManager": "pnpm@11.4.0",
@@ -24,6 +24,10 @@
     "node": ">=20"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["better-sqlite3", "bcryptjs", "sharp"]
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "bcryptjs",
+      "sharp"
+    ]
   }
 }

@@ -1,6 +1,6 @@
 {
-  "name": "mcp-archimate",
-  "version": "0.4.2",
+  "name": "api",
+  "version": "0.1.0",
   "description": "REST and MCP services to explore an ArchiMate model",
   "type": "module",
   "exports": {

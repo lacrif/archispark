@@ -14,7 +14,7 @@ ArchiMate 3.1 modeling tool — REST API, MCP server, and web UI.
 
 ```bash
 pnpm install
-pnpm dev          # API :8000 · Web :3000 · both bound to 0.0.0.0
+pnpm dev          # API :3000 · Web :8000 · MCP :3001 · all bound to 0.0.0.0
 ```
 
 On first run the API:
@@ -120,7 +120,7 @@ Default credentials: `admin` / `admin` (admin), `user` / `user` (read-only).
 
 ## MCP
 
-Endpoint: `http://localhost:8000/mcp/`  
+Endpoint: `http://localhost:3000/mcp/`  
 Transport: Streamable HTTP (MCP 2025-03-26).
 
 Available tools: `get_model_info`, `list_element_types`, `list_elements`, `get_element`, `list_relationship_types`, `list_relationships`, `get_relationship`, `list_views`, `get_view`, `create_view`, `create_node`, `create_element`, `update_element`, `delete_element`, `create_relationship`, `update_relationship`, `delete_relationship`, `save_model`.

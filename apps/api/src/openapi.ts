@@ -262,7 +262,7 @@ export const openApiSpec = {
       "La source est configurée dans `config.json`.",
     contact: { name: "GitHub", url: "https://github.com/lacrif/mcp-archimate" },
   },
-  servers: [{ url: "http://localhost:8000", description: "Serveur local" }],
+  servers: [{ url: "http://localhost:3000", description: "Serveur local" }],
 
   tags: [
     { name: "Model",         description: "Informations et persistance du modèle" },

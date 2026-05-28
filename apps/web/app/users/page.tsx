@@ -68,7 +68,12 @@ export default function UsersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => {
+    fetchUsers()
+      .then(setUsers)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   function openEdit(u: UserOut) {
     setEditTarget(u);

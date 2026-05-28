@@ -75,7 +75,12 @@ export default function ViewsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => {
+    fetchViews()
+      .then(setViews)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   function openEdit(view: ViewOut, e: React.MouseEvent) {
     e.preventDefault();

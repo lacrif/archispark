@@ -110,10 +110,10 @@ export default function RelationshipsPage() {
     reload();
   }, [typeFilter, debouncedSearch, reload]);
 
-  function elLabel(id: string) {
+  const elLabel = useCallback((id: string) => {
     const el = allElements.find((e) => e.identifier === id);
     return el ? `${el.name || el.identifier} (${el.type})` : id;
-  }
+  }, [allElements]);
 
   function openEdit(rel: RelationshipOut) {
     setEditTarget(rel);
@@ -230,7 +230,7 @@ export default function RelationshipsPage() {
         </div>
       ),
     }] : []),
-  ], [allElements, isAdmin]);
+  ], [isAdmin, elLabel]);
 
   if (error) {
     return (
