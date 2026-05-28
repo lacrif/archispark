@@ -7,7 +7,9 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "test": "turbo run test --filter=mcp-archimate --filter=web",
+    "test:coverage": "turbo run test:coverage --filter=mcp-archimate --filter=web"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
