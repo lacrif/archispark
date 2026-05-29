@@ -108,6 +108,7 @@ function ArchiNode({ id, data, selected }: NodeProps) {
         border: `1px solid ${border}`,
         borderRadius: 4,
         background: bg,
+        color: "#111",
         padding: "16px 6px 6px 6px",
         fontSize: 11,
         textAlign: "left",
@@ -122,6 +123,7 @@ function ArchiNode({ id, data, selected }: NodeProps) {
         border: `1px solid ${border}`,
         borderRadius: 4,
         background: bg,
+        color: "#111",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -542,6 +544,7 @@ function ElementPalette({ elements }: { elements: ElementOut[] }) {
                           background: bg,
                           border: `1px solid ${border}`,
                           borderRadius: 3,
+                          color: "#111",
                         }}
                       >
                         {el.name || "(sans nom)"}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState, useCallback } from "react";
-import { Menu, Moon, Sun, LogOut, ChevronDown, FolderOpen, Plus, Trash2 } from "lucide-react";
+import { Menu, Moon, Sun, Clock, LogOut, ChevronDown, FolderOpen, Plus, Trash2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {
   fetchWorkspaces,
@@ -32,6 +32,32 @@ export function Nav({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
+  const [themePref, setThemePref] = useState<"light" | "dark" | "auto">("dark");
+
+  // Load pref from localStorage
+  useEffect(() => {
+    const saved = (localStorage.getItem("theme-pref") as "light" | "dark" | "auto") ?? "dark";
+    setThemePref(saved);
+  }, []);
+
+  // Auto mode: apply light/dark based on hour, update every minute
+  useEffect(() => {
+    if (themePref !== "auto") return;
+    const apply = () => {
+      const h = new Date().getHours();
+      setTheme(h >= 7 && h < 20 ? "light" : "dark");
+    };
+    apply();
+    const id = setInterval(apply, 60_000);
+    return () => clearInterval(id);
+  }, [themePref, setTheme]);
+
+  function cycleTheme() {
+    const next = themePref === "light" ? "dark" : themePref === "dark" ? "auto" : "light";
+    localStorage.setItem("theme-pref", next);
+    setThemePref(next);
+    if (next !== "auto") setTheme(next);
+  }
 
   const [workspaces, setWorkspaces] = useState<WorkspaceInfo[]>([]);
   const [wsMenuOpen, setWsMenuOpen] = useState(false);
@@ -251,10 +277,13 @@ export function Nav({ onToggleSidebar }: { onToggleSidebar: () => void }) {
       <Button
         variant="ghost"
         size="icon-sm"
-        onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-        aria-label="Toggle theme"
+        onClick={cycleTheme}
+        aria-label={themePref === "light" ? "Mode clair" : themePref === "dark" ? "Mode sombre" : "Mode auto"}
+        title={themePref === "light" ? "Mode clair (clic → sombre)" : themePref === "dark" ? "Mode sombre (clic → auto)" : "Mode auto par heure (clic → clair)"}
       >
-        {resolvedTheme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+        {themePref === "auto"
+          ? <Clock className="size-4" />
+          : resolvedTheme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
       </Button>
       <Button variant="ghost" size="icon-sm" onClick={logout} aria-label="Déconnexion">
         <LogOut className="size-4" />
