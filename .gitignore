@@ -42,3 +42,4 @@ npm-debug.log*
 
 # Documentation — vit dans le repo séparé archispark-docs
 docs/
+.playwright-mcp/
