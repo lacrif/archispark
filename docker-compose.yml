@@ -1,104 +1,139 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  ArchiSpark — Docker Compose (Phase 3 — Production)
+#
+#  Architecture couplage faible :
+#    proxy      → Caddy (reverse proxy, TLS, routage)
+#    api        → Express REST API
+#    mcp-server → MCP Server (Streamable HTTP)
+#    web        → Next.js (rendu UI uniquement)
+#    postgres   → PostgreSQL 17
+#
+#  Usage :
+#    cp .env.example .env && vi .env   # configurer les secrets
+#    docker compose up -d
+#
+#  Variables requises dans .env :
+#    DB_PASSWORD, BETTER_AUTH_SECRET, ARCHISPARK_HOST
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
-  postgres:
-    image: postgres:18
+
+  # ── Reverse Proxy ──────────────────────────────────────────────────────────
+  proxy:
+    image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     environment:
-      POSTGRES_USER: archispark
-      POSTGRES_PASSWORD: archispark
-      POSTGRES_DB: archispark
+      CADDY_HOST: ${ARCHISPARK_HOST:-localhost}
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+      mcp-server:
+        condition: service_started
+    networks:
+      - archispark
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     archispark
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_DB:       archispark
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U archispark -d archispark"]
+      test:     ["CMD-SHELL", "pg_isready -U archispark -d archispark"]
       interval: 5s
-      timeout: 5s
-      retries: 10
+      timeout:  5s
+      retries:  10
+    networks:
+      - archispark
 
-  mock-oidc:
-    image: ghcr.io/navikt/mock-oauth2-server:2.1.10
-    ports:
-      - "9000:8080"
-    environment:
-      JSON_CONFIG: |
-        {
-          "interactiveLogin": false,
-          "httpServer": "NettyWrapper",
-          "tokenCallbacks": [{
-            "issuerId": "archispark",
-            "requestMappings": [{
-              "requestParam": "scope",
-              "match": "openid",
-              "claims": {
-                "sub": "testuser",
-                "email": "testuser@example.com",
-                "name": "Test User"
-              }
-            }]
-          }]
-        }
-
+  # ── REST API ───────────────────────────────────────────────────────────────
   api:
     build:
-      context: .
+      context:    .
       dockerfile: Dockerfile.api
     restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./data:/repo/data
     environment:
-      PORT: "3000"
-      HOST: "0.0.0.0"
-      # DB_DRIVER: postgres                                         # uncomment to use PostgreSQL
-      # DATABASE_URL: postgresql://archispark:archispark@postgres:5432/archispark
-      # GENERIC_OIDC_CLIENT_ID: archispark-client                  # uncomment to enable mock SSO
-      # GENERIC_OIDC_CLIENT_SECRET: secret
-      # GENERIC_OIDC_ISSUER: http://mock-oidc:8080/archispark
-      # GENERIC_OIDC_NAME: "Mock SSO"
-    # depends_on:                                                   # uncomment when DB_DRIVER=postgres
-    #   postgres:
-    #     condition: service_healthy
+      NODE_ENV:             production
+      PORT:                 "3000"
+      HOST:                 "0.0.0.0"
+      DATABASE_URL:         postgresql://archispark:${DB_PASSWORD}@postgres:5432/archispark
+      BETTER_AUTH_SECRET:   ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
+      BETTER_AUTH_URL:      ${ARCHISPARK_URL:-http://localhost}
+      SEED_ADMIN_PASSWORD:  ${SEED_ADMIN_PASSWORD:-}
+      SEED_USER_PASSWORD:   ${SEED_USER_PASSWORD:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      test:     ["CMD", "wget", "-qO-", "http://localhost:3000/"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout:  5s
+      retries:  5
+    networks:
+      - archispark
 
+  # ── MCP Server ─────────────────────────────────────────────────────────────
   mcp-server:
     build:
-      context: .
+      context:    .
       dockerfile: Dockerfile.mcp-server
     restart: unless-stopped
-    ports:
-      - "3001:3001"
     environment:
-      MCP_PORT: "3001"
-      HOST: "0.0.0.0"
+      NODE_ENV:    production
+      MCP_PORT:    "3001"
+      HOST:        "0.0.0.0"
+      DATABASE_URL: postgresql://archispark:${DB_PASSWORD}@postgres:5432/archispark
     depends_on:
       api:
         condition: service_healthy
+    networks:
+      - archispark
 
+  # ── Next.js Web ────────────────────────────────────────────────────────────
+  # Responsabilité unique : rendu UI
+  # Caddy gère /api/* et /auth/* — aucun rewrite dans Next.js
   web:
     build:
-      context: .
+      context:    .
       dockerfile: Dockerfile.web
-      args:
-        # Must match the Docker network service name
-        ARCHIMATE_API_URL: http://api:3000
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     environment:
       NODE_ENV: production
+      PORT:     "8000"
+      HOSTNAME: "0.0.0.0"
+      # ARCHIMATE_API_URL vide → rewrites Next.js désactivés
+      # Caddy prend en charge le routage
+      ARCHIMATE_API_URL: ""
     depends_on:
       api:
         condition: service_healthy
+    healthcheck:
+      test:     ["CMD", "wget", "-qO-", "http://localhost:8000/"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+    networks:
+      - archispark
 
 networks:
-  default:
+  archispark:
     name: archispark
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

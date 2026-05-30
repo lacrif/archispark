@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  ArchiSpark — Reverse proxy (Caddy)
+#
+#  Routage centralisé — Next.js ne proxie plus rien :
+#    /mcp/*   → MCP Server  :3001  (SSE streaming, flush immédiat)
+#    /api/*   → Express API :3000  (préfixe /api retiré)
+#    /auth/*  → Express API :3000  (Better Auth)
+#    /*       → Next.js     :8000
+#
+#  Variable d'environnement :
+#    CADDY_HOST — domaine de production (ex: archispark.com)
+#                 défaut : localhost (HTTP uniquement, pas de TLS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+{$CADDY_HOST:localhost} {
+
+    # ── MCP Server ────────────────────────────────────────────────────────────
+    # flush_interval -1 = écriture immédiate pour le Streamable HTTP / SSE
+    handle /mcp/* {
+        reverse_proxy mcp-server:3001 {
+            flush_interval -1
+            header_up   Host              {upstream_hostport}
+            header_down -Cache-Control
+            header_down X-Accel-Buffering no
+        }
+    }
+
+    # ── REST API ──────────────────────────────────────────────────────────────
+    # /api/elements → Express /elements  (préfixe /api retiré)
+    handle /api/* {
+        uri strip_prefix /api
+        reverse_proxy api:3000 {
+            header_up Host {upstream_hostport}
+        }
+    }
+
+    # ── Better Auth ───────────────────────────────────────────────────────────
+    handle /auth/* {
+        reverse_proxy api:3000 {
+            header_up Host {upstream_hostport}
+        }
+    }
+
+    # ── Next.js Web ───────────────────────────────────────────────────────────
+    handle {
+        reverse_proxy web:8000 {
+            header_up Host {upstream_hostport}
+        }
+    }
+
+    # ── En-têtes de sécurité ──────────────────────────────────────────────────
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options    nosniff
+        X-Frame-Options           SAMEORIGIN
+        Referrer-Policy           strict-origin-when-cross-origin
+        -Server
+    }
+
+    log {
+        output  stdout
+        format  console
+        level   INFO
+    }
+}
